@@ -116,7 +116,7 @@ Edit `config.json`, then run `./start.sh`. Any key can also be given once on the
 |---|---|---|
 | `scene` | `"face"` or `"eye"` | `"face"` |
 | `theme` | `"dark"` or `"light"` | `"dark"` |
-| `fit` | face: `"cover"` fills the screen; `"contain"` shows the whole square picture centred | `"cover"` |
+| `fit` | face: `"cover"` fills the screen; `"contain"` shows the whole picture centred | `"cover"` |
 | `focus` | face, cover: the point of the picture put at the screen centre, `[x, y]` from 0 to 1. Raise `y` for more nose and water, lower it for more hair | `[0.5, 0.5]` |
 | `cell` | face: character width in px at 1080p. Smaller means more detail and more CPU. Scales with resolution | `5` |
 | `hair_strength` | how far the hair sways | `3.5` |

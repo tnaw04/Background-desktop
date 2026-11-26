@@ -83,8 +83,9 @@ gói như chế độ X11, cùng GStreamer với `gst-launch-1.0`, `rawvideopars
 `vp8enc` và `webmmux`. Nếu GNOME chưa nhận tiện ích trong lần cài đầu,
 hãy đăng xuất rồi đăng nhập lại bằng phiên Ubuntu Wayland.
 
-Cảnh tự chớp mắt và đảo hướng, có hai dải số phủ tới mép màn hình. Cùng hình
-nền xuất hiện ở desktop, Tổng quan và lúc chuyển workspace. Video mặc định
+Cảnh tự chớp mắt và đảo hướng. Ảnh vuông có hai dải số phủ tới mép màn hình.
+Ảnh ngang hiển thị nguyên khung theo tỷ lệ gốc. Cùng hình nền xuất hiện ở
+desktop, Tổng quan và lúc chuyển workspace. Video mặc định
 1920 × 1200. Có thể đổi kích thước bằng `--width` và `--height` khi cài.
 Chạy lại lệnh cài để xuất video mới sau khi đổi ảnh hoặc chủ đề.
 
@@ -132,7 +133,7 @@ Sửa `config.json` rồi chạy `./start.sh`. Mọi khoá cũng có thể ghi �
 |---|---|---|
 | `scene` | `"face"` hoặc `"eye"` | `"face"` |
 | `theme` | `"dark"` hoặc `"light"` | `"dark"` |
-| `fit` | face: `"cover"` phủ kín màn hình; `"contain"` hiện cả ảnh vuông ở giữa | `"cover"` |
+| `fit` | face: `"cover"` phủ kín màn hình; `"contain"` hiện trọn ảnh ở giữa | `"cover"` |
 | `focus` | face, cover: điểm của ảnh đặt vào giữa màn hình, `[x, y]` từ 0 đến 1. Tăng `y` để thấy nhiều mũi và mặt nước hơn, giảm để thấy nhiều tóc hơn | `[0.5, 0.5]` |
 | `cell` | face: độ rộng một ký tự (px, tính ở 1080p). Nhỏ hơn thì chi tiết hơn và tốn CPU hơn. Tự nhân theo độ phân giải | `5` |
 | `hair_strength` | biên độ tóc bay | `3.5` |
@@ -153,7 +154,7 @@ Cảnh face dùng hai file:
 
 | File | Nội dung |
 |---|---|
-| `assets/avatar.png` | ảnh vuông, tốt nhất là ảnh cận mặt thấy rõ hai mắt |
+| `assets/avatar.png` | ảnh PNG, tốt nhất là ảnh thấy rõ hai mắt |
 | `assets/face.json` | hình học của ảnh, tính theo pixel của chính ảnh đó |
 
 Các trường trong `face.json`:

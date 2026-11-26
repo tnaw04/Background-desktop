@@ -106,11 +106,12 @@ class Eye:
         lid = g.get("lid", {})
         self.lash, self.skin_h = float(lid.get("lash", 8)), float(lid.get("skin", 10))
         # tones of the drawing's own white and iris, so the painted eye matches its surroundings
-        pts = [(x, y) for x in range(int(self.xl), int(min(self.xr, 412)))
+        last_x = int(min(self.xr, src.shape[1] // UP - 1))
+        pts = [(x, y) for x in range(int(self.xl), last_x)
                for y in range(int(self.top(x)) + 2, int(self.bottom(x)) - 1)]
         self.sclera, self.iris_lo, self.iris_hi = 0.85, 0.15, 0.55
         # the skin just under the lower lid gives the closed lid its tone
-        sk = [(x, y) for x in range(int(self.xl) + 4, int(min(self.xr, 412)) - 4, 2)
+        sk = [(x, y) for x in range(int(self.xl) + 4, last_x - 4, 2)
               for y in range(int(self.bottom(x)) + 4, int(self.bottom(x)) + 14, 2)]
         self.skin = float(np.percentile(sample(src, *np.array(sk, np.float32).T), 60)) if sk else 0.6
         if pts:
@@ -138,7 +139,7 @@ class FaceScene:
         self.geo = json.loads((ROOT / "assets" / "face.json").read_text())
         src_path = ROOT / "assets" / self.geo["source"]
         self.src = prepare(src_path)
-        self.size = self.src.shape[0] // UP
+        self.height, self.width = (dimension // UP for dimension in self.src.shape)
         self.light = cfg["theme"] == "light"
         self.fx = dict(dict(water=True, ripples=True, hair=True, stars=True, glow=True), **cfg.get("effects", {}))
         self.hair_strength = float(cfg.get("hair_strength", 3.5))
@@ -151,17 +152,17 @@ class FaceScene:
         self.prev_ptr = None
 
         # hair: a soft mask per region, with the direction its strands run (root -> tip)
-        n = self.size
         self.hair = []
         for h in self.geo.get("hair", []):
-            m = Image.new("L", (n, n), 0)
+            m = Image.new("L", (self.width, self.height), 0)
             ImageDraw.Draw(m).polygon([tuple(p) for p in h["polygon"]], fill=255)
             m = np.asarray(m.filter(ImageFilter.GaussianBlur(6)), np.float32) / 255
             d = np.array(h["direction"], np.float32)
             d /= np.linalg.norm(d)
             self.hair.append(dict(mask=m, root=np.array(h["root"], np.float32), t=d,
                                   n=np.array([-d[1], d[0]], np.float32), reach=float(h.get("reach", 300))))
-        self.hair_any = sum((h["mask"] for h in self.hair), np.zeros((n, n), np.float32)).clip(0, 1)
+        self.hair_any = sum((h["mask"] for h in self.hair),
+                            np.zeros((self.height, self.width), np.float32)).clip(0, 1)
 
         # tone curve as a lookup table: an S-curve for contrast around the skin's mid greys
         x = np.linspace(0, 1, 256, dtype=np.float32)
@@ -177,29 +178,32 @@ class FaceScene:
 
     # ------------------------------------------------------------ layout
     def layout(self, mon):
-        cfg, n = self.cfg, self.size
+        cfg, width, height = self.cfg, self.width, self.height
         cw = max(3, round(cfg.get("cell", 5) * mon["h"] / 1080))
         ch = 2 * cw
         fit = cfg.get("fit", "cover")
         if fit == "cover":                   # fill the whole monitor, cropping the avatar
             W, H = mon["w"], mon["h"]
-            s = max(W / n, H / n)
+            s = max(W / width, H / height)
             self.cols, self.rows = W // cw, H // ch
             gw, gh = self.cols * cw, self.rows * ch
             vw, vh = gw / s, gh / s
             fx, fy = cfg.get("focus") or self.geo.get("focus", [0.5, 0.5])
-            vx = min(max(fx * n - vw / 2, 0), n - vw)
-            vy = min(max(fy * n - vh / 2, 0), n - vh)
+            vx = min(max(fx * width - vw / 2, 0), width - vw)
+            vy = min(max(fy * height - vh / 2, 0), height - vh)
             ox, oy = mon["x"] + (W - gw) // 2, mon["y"] + (H - gh) // 2
-        else:                                # the whole square, centred
-            side = min(cfg.get("face_size", 0.92) * mon["h"], mon["h"], 0.96 * mon["w"])
-            self.cols, self.rows = int(side // cw), int(side // ch)
+        else:                                # the whole image, centred
+            width_limit = mon["w"] * (0.96 if width == height else 1.0)
+            height_limit = mon["h"] * min(cfg.get("face_size", 0.92), 1.0)
+            s = min(width_limit / width, height_limit / height)
+            self.cols = int(width * s // cw)
+            self.rows = int(height * s // ch)
             gw, gh = self.cols * cw, self.rows * ch
             px, py = cfg["position"]
             ox = round(min(max(mon["x"] + px * mon["w"] - gw / 2, mon["x"]), mon["x"] + mon["w"] - gw))
             oy = round(min(max(mon["y"] + py * mon["h"] - gh / 2, mon["y"]), mon["y"] + mon["h"] - gh))
-            vx, vy, vw, vh = 0.0, 0.0, float(n), float(n)
-            s = gw / n
+            vx, vy, vw, vh = 0.0, 0.0, float(width), float(height)
+            s = gw / width
         self.view = (vx, vy, vw, vh)
         self.origin, self.scale = (ox, oy), s
 
@@ -212,10 +216,12 @@ class FaceScene:
         if fit == "cover":                   # a gentle fade at the top and bottom edges
             e = np.minimum(np.arange(fh), fh - 1 - np.arange(fh)) / fh
             self.vignette = np.repeat((0.35 + 0.65 * smoothstep(0, 0.05, e))[:, None], fw, 1).astype(np.float32)
-        else:                                # fade the square's edges into the background
-            u = np.minimum(xs, n - 1 - xs) / n
-            v = np.minimum(ys, n - 1 - ys) / n
+        elif width == height:               # fade the square's edges into the background
+            u = np.minimum(xs, width - 1 - xs) / width
+            v = np.minimum(ys, height - 1 - ys) / height
             self.vignette = (smoothstep(0.0, 0.07, v)[:, None] * smoothstep(0.0, 0.07, u)[None, :]).astype(np.float32)
+        else:
+            self.vignette = np.ones((fh, fw), np.float32)
         cx = vx + (np.arange(self.cols, dtype=np.float32) + 0.5) / self.cols * vw
         cy = vy + (np.arange(self.rows, dtype=np.float32) + 0.5) / self.rows * vh
         self.CX, self.CY = np.meshgrid(cx, cy)

@@ -50,7 +50,9 @@ class WallpaperFrames:
         self.pixels = np.empty((height, width, 3), dtype=np.uint8)
         self.scene = FaceScene(config, colors, font, self.pixels, canvas_factory=FrameCanvas)
         self.scene.layout(dict(x=0, y=0, w=width, h=height))
-        self.draw_digits(font)
+        self.pixels[:] = self.scene.bg
+        if self.scene.width == self.scene.height:
+            self.draw_digits(font)
         self.behaviour = Behaviour(0, 0)
         self.previous_time = 0
 
