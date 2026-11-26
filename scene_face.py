@@ -132,8 +132,9 @@ class Eye:
 
 
 class FaceScene:
-    def __init__(self, cfg, colors, font, canvas):
+    def __init__(self, cfg, colors, font, canvas, *, canvas_factory=make_canvas):
         self.cfg, self.font, self.canvas = cfg, font, canvas
+        self.canvas_factory = canvas_factory
         self.geo = json.loads((ROOT / "assets" / "face.json").read_text())
         src_path = ROOT / "assets" / self.geo["source"]
         self.src = prepare(src_path)
@@ -261,7 +262,7 @@ class FaceScene:
 
         if getattr(self, "tiles", None) is not None and hasattr(self.tiles, "close"):
             self.tiles.close()
-        self.tiles = make_canvas(self.canvas, self.gs, self.rows, self.cols, ox, oy, self.bg, self.palette)
+        self.tiles = self.canvas_factory(self.canvas, self.gs, self.rows, self.cols, ox, oy, self.bg, self.palette)
         self.eye_screen = [self.to_screen(e.ix, e.iy) for e in self.eyes]
         self.focus = self.to_screen(*np.mean([(e.ix, e.iy) for e in self.eyes], axis=0))
 

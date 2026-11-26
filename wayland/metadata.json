@@ -1,0 +1,6 @@
+{
+  "uuid": "eyes-desktop@local",
+  "name": "Eyes Desktop",
+  "description": "Animated ASCII wallpaper for GNOME Wayland",
+  "shell-version": ["46"]
+}

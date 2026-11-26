@@ -43,9 +43,8 @@ One eye at full size, so the glyphs can be read (the iris fibres are `\ | / (` c
 
 ## Requirements
 
-- **Linux with an X11 session.** On Ubuntu, pick **"Ubuntu on Xorg"** with the gear icon on the login screen. The X11 session ships with the system, so switching changes nothing else.
-  - **Wayland:** the wallpaper runs, but apps cannot read the pointer outside their own windows there, so the eyes mostly play their idle routine instead of following the mouse.
-  - **macOS and Windows** are not supported.
+- **X11** for pointer tracking. On Ubuntu, choose **"Ubuntu on Xorg"** using the gear icon on the login screen.
+- **GNOME 46 on Wayland** for automatic animated wallpaper. Run `./install-wayland.sh` from the project folder. The exporter requires GStreamer with `gst-launch-1.0`, `rawvideoparse`, `vp8enc` and `webmmux`. Log out and back into Wayland if GNOME has yet to discover the extension.
 - **Python 3.8+** with Tk, Pillow, NumPy and python-xlib.
 - A monospace font. DejaVu Sans Mono is used if present, otherwise whatever `fc-match monospace` finds.
 

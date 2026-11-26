@@ -43,9 +43,8 @@ Cận cảnh một mắt ở kích thước thật để đọc được từng 
 
 ## Yêu cầu
 
-- **Linux với phiên X11.** Trên Ubuntu, chọn **"Ubuntu on Xorg"** ở biểu tượng bánh răng trên màn hình đăng nhập. Phiên này có sẵn trong hệ thống, chuyển qua lại không thay đổi gì khác.
-  - **Wayland:** hình nền vẫn chạy, nhưng ứng dụng không được đọc vị trí chuột ngoài cửa sổ của chính nó, nên mắt chủ yếu chạy kịch bản tự động thay vì nhìn theo chuột.
-  - **macOS và Windows** không được hỗ trợ.
+- **X11** cho chế độ mắt nhìn theo chuột. Trên Ubuntu, chọn **"Ubuntu on Xorg"** ở biểu tượng bánh răng trên màn hình đăng nhập.
+- **GNOME 46 trên Wayland** cho chế độ hình nền động tự chạy. Xem hướng dẫn cài bên dưới.
 - **Python 3.8+** cùng Tk, Pillow, NumPy và python-xlib.
 - Một font monospace. Dùng DejaVu Sans Mono nếu có, nếu không thì font mà `fc-match monospace` tìm được.
 
@@ -76,6 +75,22 @@ pip install -r requirements.txt
 ```
 
 ## Bắt đầu nhanh
+
+### Hình nền động trên GNOME 46 Wayland
+
+Trong thư mục dự án, chạy `./install-wayland.sh`. Lệnh này dùng Python và các
+gói như chế độ X11, cùng GStreamer với `gst-launch-1.0`, `rawvideoparse`,
+`vp8enc` và `webmmux`. Nếu GNOME chưa nhận tiện ích trong lần cài đầu,
+hãy đăng xuất rồi đăng nhập lại bằng phiên Ubuntu Wayland.
+
+Cảnh tự chớp mắt và đảo hướng, có hai dải số phủ tới mép màn hình. Cùng hình
+nền xuất hiện ở desktop, Tổng quan và lúc chuyển workspace. Video mặc định
+1920 × 1200. Có thể đổi kích thước bằng `--width` và `--height` khi cài.
+Chạy lại lệnh cài để xuất video mới sau khi đổi ảnh hoặc chủ đề.
+
+Dùng `gnome-extensions disable eyes-desktop@local` để trở lại nền mặc định.
+
+### Chạy thử và cài chế độ X11
 
 ```bash
 git clone https://github.com/hdnng/eyes-desktop.git
